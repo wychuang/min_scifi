@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>独研者工坊 MVP</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <span class="brand-mark">IR</span>
+          <div>
+            <strong>独研者工坊</strong>
+            <span>单项目科研陪练</span>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="主导航">
+          <a href="#overview">概览</a>
+          <a href="#prereg">预注册</a>
+          <a href="#check">范式检查</a>
+          <a href="#library">文献笔记</a>
+          <a href="#writing">写作复盘</a>
+        </nav>
+
+        <section class="side-panel">
+          <h2>项目状态</h2>
+          <ol class="state-list" id="stateList">
+            <li data-state="draft">草稿</li>
+            <li data-state="preregistered">预注册</li>
+            <li data-state="collecting">数据收集</li>
+            <li data-state="analysis">分析</li>
+            <li data-state="writing">写作</li>
+            <li data-state="preprint">预印本</li>
+          </ol>
+        </section>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">MVP / local first</p>
+            <h1>把一个研究项目陪到底</h1>
+          </div>
+          <div class="top-actions">
+            <button type="button" id="loadExample">填入示例</button>
+            <button type="button" class="primary" id="exportJson">导出 JSON</button>
+          </div>
+        </header>
+
+        <section class="section-grid" id="overview">
+          <article class="panel project-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Project</p>
+                <h2>项目概览</h2>
+              </div>
+              <select id="projectStatus" aria-label="项目状态">
+                <option value="draft">草稿</option>
+                <option value="preregistered">预注册</option>
+                <option value="collecting">数据收集</option>
+                <option value="analysis">分析</option>
+                <option value="writing">写作</option>
+                <option value="preprint">预印本</option>
+              </select>
+            </div>
+            <label>
+              项目名称
+              <input id="projectTitle" type="text" placeholder="例如：城市夜间光照与睡眠质量的关联" />
+            </label>
+            <label>
+              研究问题
+              <textarea id="researchQuestion" rows="4" placeholder="用一句可被检验的话写清楚你想知道什么"></textarea>
+            </label>
+            <div class="two-col">
+              <label>
+                领域
+                <input id="domain" type="text" placeholder="例如：公共卫生 / HCI / 天文观测" />
+              </label>
+              <label>
+                目标日期
+                <input id="targetDate" type="date" />
+              </label>
+            </div>
+          </article>
+
+          <article class="panel signal-panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Signals</p>
+                <h2>当前信号</h2>
+              </div>
+              <span class="score" id="score">0/100</span>
+            </div>
+            <div class="signal-stack" id="signalStack"></div>
+            <p class="hint">红黄绿判断来自本地规则，只做研究设计提醒，不替代导师、伦理审查或专业统计咨询。</p>
+          </article>
+        </section>
+
+        <section class="panel" id="prereg">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Pre-registration</p>
+              <h2>预注册表单</h2>
+            </div>
+            <button type="button" id="runCheck">运行检查</button>
+          </div>
+          <div class="form-grid">
+            <label>
+              可证伪假设
+              <textarea id="hypothesis" rows="4" placeholder="如果 X 改变，那么 Y 会出现可观测变化；否则我会承认假设未被支持"></textarea>
+            </label>
+            <label>
+              预期结果
+              <textarea id="expectedResult" rows="4" placeholder="写出你预期看到的方向、幅度或模式"></textarea>
+            </label>
+            <label>
+              否证条件
+              <textarea id="falsification" rows="4" placeholder="什么结果会让你放弃或修改当前假设？"></textarea>
+            </label>
+            <label>
+              方法与数据
+              <textarea id="method" rows="4" placeholder="样本来源、变量、仪器、流程、统计方法"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <section class="panel" id="check">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Review</p>
+              <h2>范式检查报告</h2>
+            </div>
+            <span class="badge" id="reviewLevel">待检查</span>
+          </div>
+          <div class="review-grid" id="reviewGrid"></div>
+        </section>
+
+        <section class="section-grid" id="library">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Library</p>
+                <h2>文献与证据</h2>
+              </div>
+              <button type="button" id="addPaper">添加文献</button>
+            </div>
+            <div id="paperList" class="paper-list"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Notes</p>
+                <h2>研究日志</h2>
+              </div>
+            </div>
+            <label>
+              今天推进了什么
+              <textarea id="dailyLog" rows="9" placeholder="记录实验、阅读、失败、疑问和下一步"></textarea>
+            </label>
+          </article>
+        </section>
+
+        <section class="section-grid" id="writing">
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Writing</p>
+                <h2>预印本骨架</h2>
+              </div>
+              <button type="button" id="buildOutline">生成骨架</button>
+            </div>
+            <textarea id="outline" rows="13" placeholder="点击生成骨架，系统会根据项目内容生成论文结构草稿"></textarea>
+          </article>
+
+          <article class="panel">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Review</p>
+                <h2>每周复盘</h2>
+              </div>
+              <label class="toggle">
+                <input id="quietMode" type="checkbox" />
+                <span>安静模式</span>
+              </label>
+            </div>
+            <div class="prompt-box" id="weeklyPrompt"></div>
+            <label>
+              本周复盘
+              <textarea id="weeklyReview" rows="7" placeholder="本周我完成了…… 卡住的地方是…… 下周最小一步是……"></textarea>
+            </label>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <template id="paperTemplate">
+      <div class="paper-item">
+        <input data-field="title" type="text" placeholder="标题 / DOI / arXiv ID" />
+        <textarea data-field="note" rows="3" placeholder="这篇文献支持、反驳或启发了什么？"></textarea>
+        <button type="button" data-action="remove">删除</button>
+      </div>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>
