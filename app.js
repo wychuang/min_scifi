@@ -111,11 +111,13 @@ function bindFields() {
     }
 
     element.value = state[id] || "";
-    element.addEventListener("input", () => {
+    const persistValue = () => {
       state[id] = element.value;
       saveState();
       renderAll();
-    });
+    };
+    element.addEventListener("input", persistValue);
+    element.addEventListener("change", persistValue);
   });
 }
 

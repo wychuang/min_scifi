@@ -166,7 +166,8 @@ function createHarness(storedState) {
       callbacks.get("DOMContentLoaded")?.();
     },
     getStoredState() {
-      return JSON.parse(storage.get("min-scifi-ir-workbench"));
+      const saved = storage.get("min-scifi-ir-workbench");
+      return saved ? JSON.parse(saved) : null;
     }
   };
 }
@@ -192,4 +193,15 @@ test("legacy or malformed stored state is normalized before rendering", () => {
   assert.equal(harness.elements.get("score").textContent, "20/100");
   assert.equal(harness.elements.get("paperList").children.length, 1);
   assert.equal(harness.stateItems[4].classList.contains("active"), true);
+});
+
+test("project status persists when a select change event fires", () => {
+  const harness = createHarness();
+  harness.dispatchDOMContentLoaded();
+
+  const projectStatus = harness.elements.get("projectStatus");
+  projectStatus.value = "analysis";
+  projectStatus.listeners.get("change")?.();
+
+  assert.equal(harness.getStoredState()?.projectStatus, "analysis");
 });
