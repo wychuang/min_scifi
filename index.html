@@ -19,6 +19,7 @@
 
         <nav class="nav-list" aria-label="主导航">
           <a href="#overview">概览</a>
+          <a href="#vault">资料库</a>
           <a href="#prereg">预注册</a>
           <a href="#check">范式检查</a>
           <a href="#library">文献笔记</a>
@@ -97,6 +98,34 @@
             <div class="signal-stack" id="signalStack"></div>
             <p class="hint">红黄绿判断来自本地规则，只做研究设计提醒，不替代导师、伦理审查或专业统计咨询。</p>
           </article>
+        </section>
+
+        <section class="panel" id="vault">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Vault</p>
+              <h2>外部资料库</h2>
+            </div>
+            <div class="panel-actions">
+              <button type="button" id="connectVault">连接资料库目录</button>
+              <button type="button" class="primary" id="syncVault">写入资料库</button>
+            </div>
+          </div>
+          <div class="vault-grid">
+            <label>
+              资料库路径备注
+              <input id="vaultPathHint" type="text" placeholder="例如：D:\Research\min-scifi-vault 或 Obsidian vault 名称" />
+            </label>
+            <label>
+              本地后端路径
+              <span class="field-row">
+                <input id="backendVaultPath" type="text" placeholder="启动 backend/server.py 后可填写绝对路径" />
+                <button type="button" id="saveBackendPath">保存路径</button>
+              </span>
+            </label>
+          </div>
+          <div class="prompt-box vault-status" id="vaultStatus"></div>
+          <p class="hint">浏览器静态页只能在用户授权后写入目录；如需直接配置绝对路径，请用本地后端模式运行。</p>
         </section>
 
         <section class="panel" id="prereg">
@@ -205,6 +234,8 @@
       </div>
     </template>
 
+    <script src="src/storage-schema.js"></script>
+    <script src="src/storage-adapters.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

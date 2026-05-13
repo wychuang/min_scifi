@@ -93,17 +93,23 @@ function createHarness(storedState) {
     "dailyLog",
     "outline",
     "weeklyReview",
+    "vaultPathHint",
+    "backendVaultPath",
     "runCheck",
     "addPaper",
     "buildOutline",
     "loadExample",
     "exportJson",
+    "connectVault",
+    "syncVault",
+    "saveBackendPath",
     "score",
     "signalStack",
     "reviewGrid",
     "reviewLevel",
     "weeklyPrompt",
-    "paperList"
+    "paperList",
+    "vaultStatus"
   ];
 
   ids.forEach(id => elements.set(id, new FakeElement(id)));
@@ -156,6 +162,8 @@ function createHarness(storedState) {
   };
 
   vm.createContext(context);
+  vm.runInContext(readFileSync("src/storage-schema.js", "utf8"), context);
+  vm.runInContext(readFileSync("src/storage-adapters.js", "utf8"), context);
   vm.runInContext(readFileSync("app.js", "utf8"), context);
 
   return {
@@ -179,6 +187,7 @@ test("fresh localStorage renders without crashing", () => {
   assert.equal(harness.elements.get("score").textContent, "20/100");
   assert.equal(harness.elements.get("paperList").children.length, 1);
   assert.equal(harness.stateItems[0].classList.contains("active"), true);
+  assert.match(harness.elements.get("vaultStatus").textContent, /浏览器缓存/);
 });
 
 test("legacy or malformed stored state is normalized before rendering", () => {
@@ -204,4 +213,15 @@ test("project status persists when a select change event fires", () => {
   projectStatus.listeners.get("change")?.();
 
   assert.equal(harness.getStoredState()?.projectStatus, "analysis");
+});
+
+test("vault path hint persists as part of decoupled storage settings", () => {
+  const harness = createHarness();
+  harness.dispatchDOMContentLoaded();
+
+  const vaultPathHint = harness.elements.get("vaultPathHint");
+  vaultPathHint.value = "D:\\Research\\min-scifi-vault";
+  vaultPathHint.listeners.get("change")?.();
+
+  assert.equal(harness.getStoredState()?.vaultPathHint, "D:\\Research\\min-scifi-vault");
 });

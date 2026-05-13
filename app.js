@@ -1,37 +1,7 @@
-const storageKey = "min-scifi-ir-workbench";
-
-const fields = [
-  "projectStatus",
-  "projectTitle",
-  "researchQuestion",
-  "domain",
-  "targetDate",
-  "hypothesis",
-  "expectedResult",
-  "falsification",
-  "method",
-  "dailyLog",
-  "outline",
-  "weeklyReview",
-  "quietMode"
-];
-
-const defaultState = {
-  projectStatus: "draft",
-  projectTitle: "",
-  researchQuestion: "",
-  domain: "",
-  targetDate: "",
-  hypothesis: "",
-  expectedResult: "",
-  falsification: "",
-  method: "",
-  dailyLog: "",
-  outline: "",
-  weeklyReview: "",
-  quietMode: false,
-  papers: []
-};
+const storageApi = window.MinScifiStorage;
+const storageAdapters = window.MinScifiAdapters;
+const storageKey = storageApi.storageKey;
+const fields = storageApi.fields;
 
 const rules = [
   {
@@ -77,6 +47,7 @@ const rules = [
 ];
 
 let state = loadState();
+let vaultDirectoryHandle = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   bindFields();
@@ -93,6 +64,9 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("buildOutline").addEventListener("click", buildOutline);
   document.getElementById("loadExample").addEventListener("click", loadExample);
   document.getElementById("exportJson").addEventListener("click", exportJson);
+  document.getElementById("connectVault").addEventListener("click", connectBrowserVault);
+  document.getElementById("syncVault").addEventListener("click", syncVault);
+  document.getElementById("saveBackendPath").addEventListener("click", saveBackendPath);
 });
 
 function bindFields() {
@@ -129,6 +103,7 @@ function renderAll() {
   renderReview(results);
   renderStateList();
   renderWeeklyPrompt(results);
+  renderVaultStatus();
 }
 
 function renderSignals(results) {
@@ -260,7 +235,7 @@ function buildOutline() {
 }
 
 function loadExample() {
-  state = {
+  state = storageApi.normalizeState({
     projectStatus: "preregistered",
     projectTitle: "夜间屏幕亮度与入睡时长的小样本观察",
     researchQuestion: "在 14 天自我观察中，睡前一小时平均屏幕亮度是否与入睡时长相关？",
@@ -279,9 +254,85 @@ function loadExample() {
       { title: "OSF preregistration examples", note: "参考预注册格式。" }
     ],
     outline: ""
-  };
+  });
   saveState();
   window.location.reload();
+}
+
+async function connectBrowserVault() {
+  try {
+    vaultDirectoryHandle = await storageAdapters.chooseBrowserVaultDirectory();
+    state.vaultPathHint = vaultDirectoryHandle.name || state.vaultPathHint;
+    syncFieldValue("vaultPathHint", state.vaultPathHint);
+    saveState();
+    renderVaultStatus(`已连接浏览器授权目录：${state.vaultPathHint}`, "success");
+  } catch (error) {
+    renderVaultStatus(`未连接资料库：${error.message}`, "error");
+  }
+}
+
+async function syncVault() {
+  try {
+    const result = vaultDirectoryHandle
+      ? await storageAdapters.saveToBrowserVault(vaultDirectoryHandle, state)
+      : await storageAdapters.saveToBackendVault(state);
+    const target = result.vaultName || result.vaultPath || state.vaultPathHint || "外部资料库";
+    renderVaultStatus(`已写入 ${target}，共 ${result.fileCount} 个文件。`, "success");
+  } catch (error) {
+    renderVaultStatus(`未写入资料库：${error.message} 可先连接目录，或启动本地后端并设置路径。`, "error");
+  }
+}
+
+async function saveBackendPath() {
+  const input = document.getElementById("backendVaultPath");
+  const vaultPath = input.value.trim();
+  if (!vaultPath) {
+    renderVaultStatus("请先填写本地后端资料库路径。", "error");
+    return;
+  }
+
+  try {
+    const result = await storageAdapters.configureBackendVault(vaultPath);
+    state.vaultPathHint = result.vaultPath || vaultPath;
+    syncFieldValue("vaultPathHint", state.vaultPathHint);
+    saveState();
+    renderVaultStatus(`本地后端资料库路径已设置：${state.vaultPathHint}`, "success");
+  } catch (error) {
+    renderVaultStatus(`设置后端路径失败：${error.message}`, "error");
+  }
+}
+
+function syncFieldValue(id, value) {
+  const element = document.getElementById(id);
+  if (element) {
+    element.value = value || "";
+  }
+}
+
+function renderVaultStatus(message, level = "neutral") {
+  const box = document.getElementById("vaultStatus");
+  if (!box) return;
+
+  if (message) {
+    box.textContent = message;
+    box.className = `prompt-box vault-status ${level}`;
+    return;
+  }
+
+  if (vaultDirectoryHandle) {
+    box.textContent = `浏览器目录已连接：${vaultDirectoryHandle.name || "已授权目录"}`;
+    box.className = "prompt-box vault-status success";
+    return;
+  }
+
+  if (state.vaultPathHint) {
+    box.textContent = `资料库路径备注：${state.vaultPathHint}。写入前请连接浏览器目录，或启动本地后端。`;
+    box.className = "prompt-box vault-status neutral";
+    return;
+  }
+
+  box.textContent = "当前使用浏览器缓存。建议连接外部资料库目录，把项目写成可被 Obsidian、脚本和文本编辑器直接处理的文件。";
+  box.className = "prompt-box vault-status neutral";
 }
 
 function exportJson() {
@@ -307,52 +358,14 @@ function evaluate(rule, data) {
 function loadState() {
   try {
     const saved = localStorage.getItem(storageKey);
-    return normalizeState(saved ? JSON.parse(saved) : {});
+    return storageApi.normalizeState(saved ? JSON.parse(saved) : {});
   } catch {
-    return createDefaultState();
+    return storageApi.createDefaultState();
   }
-}
-
-function createDefaultState() {
-  return { ...defaultState, papers: [] };
-}
-
-function normalizeState(savedState) {
-  const normalized = createDefaultState();
-  if (!savedState || typeof savedState !== "object") {
-    return normalized;
-  }
-
-  fields.forEach(field => {
-    if (field === "quietMode") {
-      normalized[field] = Boolean(savedState[field]);
-      return;
-    }
-
-    if (savedState[field] !== undefined && savedState[field] !== null) {
-      normalized[field] = String(savedState[field]);
-    }
-  });
-
-  normalized.papers = Array.isArray(savedState.papers)
-    ? savedState.papers.map(normalizePaper)
-    : [];
-
-  return normalized;
-}
-
-function normalizePaper(paper) {
-  if (!paper || typeof paper !== "object") {
-    return { title: "", note: "" };
-  }
-
-  return {
-    title: String(paper.title || ""),
-    note: String(paper.note || "")
-  };
 }
 
 function saveState() {
+  state = storageApi.normalizeState(state);
   localStorage.setItem(storageKey, JSON.stringify(state));
 }
 

@@ -195,6 +195,13 @@ label {
   justify-content: flex-end;
 }
 
+.panel-actions,
+.field-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .eyebrow {
   margin: 0;
   color: var(--blue);
@@ -244,7 +251,8 @@ label {
 }
 
 .two-col,
-.form-grid {
+.form-grid,
+.vault-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -311,6 +319,20 @@ label {
   line-height: 1.55;
 }
 
+.vault-status {
+  margin-top: 16px;
+}
+
+.vault-status.success {
+  background: #e0f0e6;
+  color: var(--green);
+}
+
+.vault-status.error {
+  background: #f8e1e1;
+  color: var(--red);
+}
+
 .badge {
   padding: 6px 10px;
   border-radius: 999px;
@@ -366,6 +388,7 @@ label {
   .section-grid,
   .two-col,
   .form-grid,
+  .vault-grid,
   .review-grid {
     grid-template-columns: 1fr;
   }
@@ -386,7 +409,9 @@ label {
   }
 
   .topbar,
-  .panel-header {
+  .panel-header,
+  .panel-actions,
+  .field-row {
     align-items: stretch;
     flex-direction: column;
   }
