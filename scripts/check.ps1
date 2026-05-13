@@ -6,9 +6,17 @@ Set-Location $projectRoot
 
 Write-Host "Checking JavaScript syntax..."
 node --check app.js
+node --check src/storage-schema.js
+node --check src/storage-adapters.js
 
-Write-Host "Running smoke tests..."
-node --test tests/app-smoke.test.mjs
+Write-Host "Checking Python backend syntax..."
+python -m py_compile backend/server.py
+
+Write-Host "Running JavaScript tests..."
+node --test tests/app-smoke.test.mjs tests/vault-storage.test.mjs tests/storage-adapters.test.mjs
+
+Write-Host "Running Python backend tests..."
+python -m unittest tests.backend_server_test
 
 $chromeCandidates = @(
   @(
