@@ -11,11 +11,13 @@ Write-Host "Running smoke tests..."
 node --test tests/app-smoke.test.mjs
 
 $chromeCandidates = @(
-  "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
-  "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
-  "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
-  "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
-) | Where-Object { Test-Path $_ }
+  @(
+    "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+    "${env:ProgramFiles(x86)}\Google\Chrome\Application\chrome.exe",
+    "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
+    "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+  ) | Where-Object { Test-Path $_ }
+)
 
 if ($chromeCandidates.Count -eq 0) {
   Write-Warning "Chrome/Edge not found; skipped headless browser smoke check."
