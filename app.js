@@ -16,6 +16,23 @@ const fields = [
   "quietMode"
 ];
 
+const defaultState = {
+  projectStatus: "draft",
+  projectTitle: "",
+  researchQuestion: "",
+  domain: "",
+  targetDate: "",
+  hypothesis: "",
+  expectedResult: "",
+  falsification: "",
+  method: "",
+  dailyLog: "",
+  outline: "",
+  weeklyReview: "",
+  quietMode: false,
+  papers: []
+};
+
 const rules = [
   {
     title: "可证伪性",
@@ -286,16 +303,51 @@ function evaluate(rule, data) {
 }
 
 function loadState() {
-  const fallback = {
-    projectStatus: "draft",
-    papers: []
-  };
-
   try {
-    return { ...fallback, ...JSON.parse(localStorage.getItem(storageKey) || "{}") };
+    const saved = localStorage.getItem(storageKey);
+    return normalizeState(saved ? JSON.parse(saved) : {});
   } catch {
-    return fallback;
+    return createDefaultState();
   }
+}
+
+function createDefaultState() {
+  return { ...defaultState, papers: [] };
+}
+
+function normalizeState(savedState) {
+  const normalized = createDefaultState();
+  if (!savedState || typeof savedState !== "object") {
+    return normalized;
+  }
+
+  fields.forEach(field => {
+    if (field === "quietMode") {
+      normalized[field] = Boolean(savedState[field]);
+      return;
+    }
+
+    if (savedState[field] !== undefined && savedState[field] !== null) {
+      normalized[field] = String(savedState[field]);
+    }
+  });
+
+  normalized.papers = Array.isArray(savedState.papers)
+    ? savedState.papers.map(normalizePaper)
+    : [];
+
+  return normalized;
+}
+
+function normalizePaper(paper) {
+  if (!paper || typeof paper !== "object") {
+    return { title: "", note: "" };
+  }
+
+  return {
+    title: String(paper.title || ""),
+    note: String(paper.note || "")
+  };
 }
 
 function saveState() {
