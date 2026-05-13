@@ -3,3 +3,11 @@ __pycache__/
 backend/.min_scifi_backend.json
 .env
 .env.local
+
+# Local vaults and generated research material
+vault/
+min-scifi-vault/
+research-vault/
+exports/
+tmp/
+*.log
