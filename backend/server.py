@@ -1,7 +1,12 @@
 import argparse
 import json
+import sys
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
 
 
 FIELDS = [
@@ -362,9 +367,8 @@ def main():
     parser.add_argument("--host", default="127.0.0.1")
     args = parser.parse_args()
 
-    project_root = Path(__file__).resolve().parents[1]
     backend = VaultBackend(vault_path=args.vault)
-    server = ThreadingHTTPServer((args.host, args.port), create_handler(backend, project_root))
+    server = ThreadingHTTPServer((args.host, args.port), create_handler(backend, PROJECT_ROOT))
     print(f"min_scifi backend listening at http://{args.host}:{args.port}/")
     if backend.vault_path:
         print(f"Vault path: {backend.vault_path}")
