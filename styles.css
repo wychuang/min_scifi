@@ -196,10 +196,16 @@ label {
 }
 
 .panel-actions,
-.field-row {
+.field-row,
+.agent-actions {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.agent-actions {
+  justify-content: flex-end;
+  margin-top: 12px;
 }
 
 .eyebrow {
@@ -333,6 +339,28 @@ label {
   color: var(--red);
 }
 
+.agent-output {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.agent-proposal {
+  display: grid;
+  gap: 10px;
+}
+
+.agent-proposal pre {
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: #17211c;
+  color: #f4fbf6;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
 .badge {
   padding: 6px 10px;
   border-radius: 999px;
@@ -411,7 +439,8 @@ label {
   .topbar,
   .panel-header,
   .panel-actions,
-  .field-row {
+  .field-row,
+  .agent-actions {
     align-items: stretch;
     flex-direction: column;
   }

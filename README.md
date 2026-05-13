@@ -9,6 +9,7 @@
 - 个人科研项目工作台
 - 外部结构化资料库（Obsidian-like vault）
 - 浏览器目录授权写入与可选本地后端路径模式
+- Qwen Agent 系统设计草案
 - 预注册表单
 - 本地规则版范式检查
 - 文献与研究日志
@@ -29,6 +30,17 @@ python backend/server.py --vault D:\Research\min-scifi-vault --port 8765
 ```
 
 然后打开 `http://localhost:8765/`。
+
+如需启用 Qwen Agent，在启动后端前设置本地环境变量：
+
+```powershell
+$env:DASHSCOPE_API_KEY="你的本地密钥"
+$env:MINSCIFI_QWEN_MODEL="qwen-plus"
+$env:MINSCIFI_QWEN_APP_URL="https://dashscope.aliyuncs.com/apps/anthropic"
+python backend/server.py --vault D:\Research\min-scifi-vault --port 8765
+```
+
+密钥只从后端环境变量读取，不写入浏览器、资料库或仓库。
 
 推荐路径：
 
@@ -66,6 +78,12 @@ sources/README.md
 ```
 
 `sources/` 用于放 PDF、CSV、图片、实验记录、Zotero 导出等原始资料。应用只创建说明文件，不删除或改写未知文件。
+
+### Qwen Agent 方向
+
+下一阶段会把自然语言对话作为核心入口：用户先用普通语言讲研究想法，Agent 通过 Qwen 辅助澄清问题、生成结构化字段变更草案、标注依据，并让用户确认后再写入项目状态和资料库。设计详见 [`docs/qwen-agent-system.md`](docs/qwen-agent-system.md)。
+
+当前实现已经提供基础对话入口和 `/api/agent/message` 后端接口：Agent 会返回回复、字段变更草案、依据、风险提示和下一步；现阶段只展示草案，不自动修改项目字段。
 
 ### 预注册表单
 
@@ -117,6 +135,7 @@ MVP 不做投资对接、专利代理、正式期刊投稿承诺，也不做全�
 - 预注册版本锁定
 - 从 `project.json` 和 Markdown 回读资料库
 - 原始资料索引与 CSV/PDF 摘要卡片
+- Qwen 对话式研究陪练与 patch 预览
 - 文献检索 API 接入
 - 更细的状态机与任务清单
 - LLM 版范式审查，但每条建议必须可追溯到规则、文献或用户输入

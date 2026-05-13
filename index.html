@@ -20,6 +20,7 @@
         <nav class="nav-list" aria-label="主导航">
           <a href="#overview">概览</a>
           <a href="#vault">资料库</a>
+          <a href="#agent">Agent</a>
           <a href="#prereg">预注册</a>
           <a href="#check">范式检查</a>
           <a href="#library">文献笔记</a>
@@ -126,6 +127,32 @@
           </div>
           <div class="prompt-box vault-status" id="vaultStatus"></div>
           <p class="hint">浏览器静态页只能在用户授权后写入目录；如需直接配置绝对路径，请用本地后端模式运行。</p>
+        </section>
+
+        <section class="panel" id="agent">
+          <div class="panel-header">
+            <div>
+              <p class="eyebrow">Qwen Agent</p>
+              <h2>研究陪练对话</h2>
+            </div>
+            <select id="agentMode" aria-label="Agent 模式">
+              <option value="research_shaper">梳理研究问题</option>
+              <option value="preregistration_coach">预注册陪练</option>
+              <option value="evidence_mapper">证据地图</option>
+              <option value="writing_partner">写作伙伴</option>
+              <option value="reflection_coach">复盘陪练</option>
+            </select>
+          </div>
+          <label>
+            你现在想聊什么
+            <textarea id="agentMessage" rows="5" placeholder="例如：我想研究熬夜刷短视频是不是让第二天注意力下降，但不知道怎么设计。"></textarea>
+          </label>
+          <div class="agent-actions">
+            <button type="button" class="primary" id="sendAgentMessage">发送给 Agent</button>
+          </div>
+          <div class="agent-output" id="agentOutput">
+            <div class="prompt-box">Agent 会返回建议草案、依据和下一步。它不会直接改项目字段。</div>
+          </div>
         </section>
 
         <section class="panel" id="prereg">

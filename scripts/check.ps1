@@ -11,12 +11,13 @@ node --check src/storage-adapters.js
 
 Write-Host "Checking Python backend syntax..."
 python -m py_compile backend/server.py
+python -m py_compile backend/agent.py
 
 Write-Host "Running JavaScript tests..."
 node --test tests/app-smoke.test.mjs tests/vault-storage.test.mjs tests/storage-adapters.test.mjs
 
 Write-Host "Running Python backend tests..."
-python -m unittest tests.backend_server_test
+python -m unittest tests.backend_server_test tests.agent_backend_test
 
 $chromeCandidates = @(
   @(

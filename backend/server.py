@@ -294,7 +294,11 @@ def build_sources_readme():
     )
 
 
-def create_handler(backend, static_root):
+def create_handler(backend, static_root, agent_backend=None):
+    from backend.agent import AgentBackend
+
+    agent = agent_backend or AgentBackend(vault_backend=backend)
+
     class MinScifiHandler(SimpleHTTPRequestHandler):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, directory=str(static_root), **kwargs)
@@ -309,6 +313,9 @@ def create_handler(backend, static_root):
             if self.path == "/api/vault/state":
                 self._handle_api(lambda: backend.load_state())
                 return
+            if self.path == "/api/agent/config":
+                self._send_json(agent.get_config())
+                return
             super().do_GET()
 
         def do_POST(self):
@@ -319,6 +326,10 @@ def create_handler(backend, static_root):
             if self.path == "/api/vault/state":
                 payload = self._read_json()
                 self._handle_api(lambda: backend.save_state(payload))
+                return
+            if self.path == "/api/agent/message":
+                payload = self._read_json()
+                self._handle_api(lambda: agent.handle_message(payload))
                 return
             self.send_error(404)
 

@@ -95,6 +95,8 @@ function createHarness(storedState) {
     "weeklyReview",
     "vaultPathHint",
     "backendVaultPath",
+    "agentMode",
+    "agentMessage",
     "runCheck",
     "addPaper",
     "buildOutline",
@@ -103,13 +105,15 @@ function createHarness(storedState) {
     "connectVault",
     "syncVault",
     "saveBackendPath",
+    "sendAgentMessage",
     "score",
     "signalStack",
     "reviewGrid",
     "reviewLevel",
     "weeklyPrompt",
     "paperList",
-    "vaultStatus"
+    "vaultStatus",
+    "agentOutput"
   ];
 
   ids.forEach(id => elements.set(id, new FakeElement(id)));
@@ -224,4 +228,13 @@ test("vault path hint persists as part of decoupled storage settings", () => {
   vaultPathHint.listeners.get("change")?.();
 
   assert.equal(harness.getStoredState()?.vaultPathHint, "D:\\Research\\min-scifi-vault");
+});
+
+test("empty agent message renders a local validation error", async () => {
+  const harness = createHarness();
+  harness.dispatchDOMContentLoaded();
+
+  harness.elements.get("sendAgentMessage").click();
+
+  assert.match(harness.elements.get("agentOutput").innerHTML, /请先写下/);
 });

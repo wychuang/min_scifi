@@ -20,6 +20,17 @@ python backend/server.py --vault D:\Research\min-scifi-vault --port 8765
 
 Then open `http://localhost:8765/`.
 
+For Qwen Agent mode, set the key only in the backend process environment:
+
+```powershell
+$env:DASHSCOPE_API_KEY="replace-with-your-local-key"
+$env:MINSCIFI_QWEN_MODEL="qwen-plus"
+$env:MINSCIFI_QWEN_APP_URL="https://dashscope.aliyuncs.com/apps/anthropic"
+python backend/server.py --vault D:\Research\min-scifi-vault --port 8765
+```
+
+Never commit real API keys. `.env`, `.env.local`, and backend runtime config are ignored.
+
 ## Verify
 
 Run the project check script:
@@ -38,7 +49,9 @@ It runs JavaScript syntax checks, Python backend syntax checks, Node tests, Pyth
 - `src/storage-schema.js`: normalized state model and vault file serialization.
 - `src/storage-adapters.js`: browser directory and backend API storage adapters.
 - `backend/server.py`: optional local backend for typed vault paths.
+- `backend/agent.py`: Qwen-backed research companion API client and proposal sanitizer.
 - `docs/vault-storage.md`: external vault storage design.
+- `docs/qwen-agent-system.md`: agent workflow and Qwen integration design.
 - `discussion.md`: product/design discussion notes.
 
 ## State Model
@@ -70,6 +83,8 @@ The export button serializes the same state to JSON. Clearing browser storage re
 - Add new persisted fields to `src/storage-schema.js`, then add the element id in `index.html`.
 - Add or change review checks in the `rules` array in `app.js`.
 - Keep file-writing logic in `src/storage-schema.js`, `src/storage-adapters.js`, or `backend/server.py`, not inline in UI event handlers.
+- Keep LLM calls in the backend. The browser must never receive `DASHSCOPE_API_KEY`.
+- Qwen responses must be treated as proposals; do not mutate project state without a user-confirmed patch flow.
 - Keep generated user-facing text in Chinese unless the product direction changes.
 - Keep the app usable without remote network access or external APIs.
 
@@ -86,3 +101,4 @@ After changing UI or state logic:
 7. Connect a browser vault directory in Chrome/Edge and click `写入资料库`.
 8. Confirm `project.json`, Markdown files, and `sources/README.md` are written.
 9. Export JSON and confirm the downloaded file contains the current state.
+10. With backend env configured, send an Agent message and confirm it returns a proposal without exposing the API key.

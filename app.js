@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("connectVault").addEventListener("click", connectBrowserVault);
   document.getElementById("syncVault").addEventListener("click", syncVault);
   document.getElementById("saveBackendPath").addEventListener("click", saveBackendPath);
+  document.getElementById("sendAgentMessage").addEventListener("click", sendAgentMessage);
 });
 
 function bindFields() {
@@ -333,6 +334,90 @@ function renderVaultStatus(message, level = "neutral") {
 
   box.textContent = "当前使用浏览器缓存。建议连接外部资料库目录，把项目写成可被 Obsidian、脚本和文本编辑器直接处理的文件。";
   box.className = "prompt-box vault-status neutral";
+}
+
+async function sendAgentMessage() {
+  const messageElement = document.getElementById("agentMessage");
+  const modeElement = document.getElementById("agentMode");
+  const message = messageElement.value.trim();
+
+  if (!message) {
+    renderAgentOutput({ error: "请先写下你想和 Agent 讨论的问题。" });
+    return;
+  }
+
+  renderAgentOutput({ loading: true });
+
+  try {
+    const response = await fetch("/api/agent/message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        mode: modeElement.value,
+        state
+      })
+    });
+    const result = await response.json();
+    if (!response.ok || result.ok === false) {
+      throw new Error(result.error || "Agent 请求失败。");
+    }
+    renderAgentOutput(result);
+  } catch (error) {
+    renderAgentOutput({
+      error: `${error.message} 请确认本地后端已启动，并在后端环境中配置 Qwen API key。`
+    });
+  }
+}
+
+function renderAgentOutput(result) {
+  const box = document.getElementById("agentOutput");
+  if (!box) return;
+
+  if (result.loading) {
+    box.innerHTML = `<div class="prompt-box">Agent 正在整理你的想法...</div>`;
+    return;
+  }
+
+  if (result.error) {
+    box.innerHTML = `<div class="prompt-box vault-status error">${escapeHtml(result.error)}</div>`;
+    return;
+  }
+
+  const patch = result.patch && Object.keys(result.patch).length
+    ? JSON.stringify(result.patch, null, 2)
+    : "无字段变更草案。";
+  const basis = result.basis && result.basis.length
+    ? JSON.stringify(result.basis, null, 2)
+    : "[]";
+  const risks = result.riskFlags && result.riskFlags.length
+    ? result.riskFlags.map(item => `<li>${escapeHtml(item)}</li>`).join("")
+    : "<li>暂无额外风险提示。</li>";
+
+  box.innerHTML = `
+    <div class="prompt-box agent-proposal">
+      <strong>Agent 回复</strong>
+      <p>${escapeHtml(result.reply || "暂无回复。")}</p>
+      <strong>建议字段变更草案</strong>
+      <pre>${escapeHtml(patch)}</pre>
+      <strong>依据</strong>
+      <pre>${escapeHtml(basis)}</pre>
+      <strong>风险提示</strong>
+      <ul>${risks}</ul>
+      <strong>下一步</strong>
+      <p>${escapeHtml(result.nextAction || "先把一个最小下一步写清楚。")}</p>
+      <p class="hint">当前版本只展示草案，不会自动改项目字段。确认/编辑/拒绝流程会作为下一步实现。</p>
+    </div>
+  `;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 function exportJson() {

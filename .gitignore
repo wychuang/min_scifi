@@ -1,3 +1,5 @@
 __pycache__/
 *.py[cod]
 backend/.min_scifi_backend.json
+.env
+.env.local
