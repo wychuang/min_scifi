@@ -41,6 +41,27 @@ class AgentBackendTest(unittest.TestCase):
         self.assertEqual(summary["model"], "qwen-plus")
         self.assertNotIn("secret-value", json.dumps(summary))
 
+    def test_agent_config_loads_local_dotenv_without_exposing_secret(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            env_file = Path(temp_dir) / ".env"
+            env_file.write_text(
+                "\n".join(
+                    [
+                        "DASHSCOPE_API_KEY=local-secret",
+                        "MINSCIFI_QWEN_MODEL=qwen-test",
+                        "MINSCIFI_QWEN_APP_URL=https://dashscope.aliyuncs.com/apps/anthropic",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            config = AgentConfig.from_env(dotenv_path=env_file, environ={})
+
+            self.assertEqual(config.api_key, "local-secret")
+            self.assertEqual(config.model, "qwen-test")
+            self.assertEqual(config.app_id, "anthropic")
+            self.assertNotIn("local-secret", json.dumps(config.public_summary()))
+
     def test_generates_sanitized_patch_and_logs_to_vault(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             vault_path = Path(temp_dir) / "vault"

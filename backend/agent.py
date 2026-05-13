@@ -10,6 +10,8 @@ from urllib.parse import urlparse
 
 from backend.server import normalize_state
 
+PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
 
 ALLOWED_PATCH_FIELDS = {
     "projectStatus",
@@ -38,14 +40,20 @@ class AgentConfig:
     app_id: str = ""
 
     @classmethod
-    def from_env(cls):
-        app_base_url, app_id = parse_app_url(os.environ.get("MINSCIFI_QWEN_APP_URL", ""))
+    def from_env(cls, dotenv_path=None, environ=None):
+        values = load_dotenv(dotenv_path or PROJECT_ROOT / ".env")
+        env = environ if environ is not None else os.environ
+
+        def get_config(name, default=""):
+            return env.get(name) or values.get(name) or default
+
+        app_base_url, app_id = parse_app_url(get_config("MINSCIFI_QWEN_APP_URL"))
         return cls(
-            api_key=os.environ.get("DASHSCOPE_API_KEY", ""),
-            base_url=os.environ.get("MINSCIFI_QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
-            model=os.environ.get("MINSCIFI_QWEN_MODEL", "qwen-plus"),
-            app_base_url=os.environ.get("MINSCIFI_QWEN_APP_BASE_URL", app_base_url),
-            app_id=os.environ.get("MINSCIFI_QWEN_APP_ID", app_id),
+            api_key=get_config("DASHSCOPE_API_KEY"),
+            base_url=get_config("MINSCIFI_QWEN_BASE_URL", "https://dashscope.aliyuncs.com/compatible-mode/v1"),
+            model=get_config("MINSCIFI_QWEN_MODEL", "qwen-plus"),
+            app_base_url=get_config("MINSCIFI_QWEN_APP_BASE_URL", app_base_url),
+            app_id=get_config("MINSCIFI_QWEN_APP_ID", app_id),
         )
 
     def public_summary(self):
@@ -293,6 +301,26 @@ def parse_app_url(app_url):
     parts = [part for part in parsed.path.split("/") if part]
     app_id = parts[-1] if parts else ""
     return f"{parsed.scheme}://{parsed.netloc}", app_id
+
+
+def load_dotenv(path):
+    env_path = Path(path)
+    if not env_path.exists():
+        return {}
+
+    values = {}
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key:
+            values[key] = value
+
+    return values
 
 
 def append_jsonl(path, payload):
